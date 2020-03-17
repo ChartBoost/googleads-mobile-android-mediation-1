@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.chartboost.sdk.BuildConfig;
 import com.chartboost.sdk.Chartboost;
 import com.chartboost.sdk.Model.CBError;
 import com.google.android.gms.ads.mediation.Adapter;
@@ -82,12 +83,6 @@ public class ChartboostMediationAdapter extends Adapter implements MediationRewa
     public void initialize(Context context,
                            InitializationCompleteCallback initializationCompleteCallback,
                            List<MediationConfiguration> mediationConfigurations) {
-        if (!(context instanceof Activity)) {
-            initializationCompleteCallback.onInitializationFailed(
-                    "Chartboost SDK requires an Activity context to initialize");
-            return;
-        }
-
         HashMap<String, Bundle> chartboostConfigs = new HashMap<>();
         for (MediationConfiguration configuration : mediationConfigurations) {
             Bundle params = configuration.getServerParameters();
@@ -126,7 +121,7 @@ public class ChartboostMediationAdapter extends Adapter implements MediationRewa
                     "Initialization Failed: Invalid server parameters.");
             return;
         }
-
+        
         ChartboostSingleton.startChartboostRewardedVideo(
                 context, mChartboostRewardedVideoDelegate);
     }
