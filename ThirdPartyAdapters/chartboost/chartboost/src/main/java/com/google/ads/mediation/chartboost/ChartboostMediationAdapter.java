@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.chartboost.sdk.BuildConfig;
 import com.chartboost.sdk.Chartboost;
 import com.chartboost.sdk.Model.CBError;
 import com.google.android.gms.ads.mediation.Adapter;

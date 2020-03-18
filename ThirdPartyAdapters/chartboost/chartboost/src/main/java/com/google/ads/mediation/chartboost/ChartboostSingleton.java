@@ -20,12 +20,11 @@ import android.util.Log;
 import android.view.Gravity;
 import android.widget.LinearLayout;
 
-import com.chartboost.sdk.Banner.BannerSize;
-import com.chartboost.sdk.BuildConfig;
 import com.chartboost.sdk.Chartboost;
 import com.chartboost.sdk.ChartboostBanner;
 import com.chartboost.sdk.ChartboostBannerListener;
 import com.chartboost.sdk.ChartboostDelegate;
+import com.chartboost.sdk.Events.ChartboostCacheError;
 import com.chartboost.sdk.Libraries.CBLogging;
 import com.chartboost.sdk.Model.CBError;
 
@@ -110,6 +109,11 @@ public final class ChartboostSingleton {
         }
     }
 
+    /**
+     * Add Chartboost banner as a weak reference to a map
+     * @param location
+     * @param banner
+     */
     private static void addChartboostBanner(String location, ChartboostBanner banner) {
         if (!TextUtils.isEmpty(location) && banner != null) {
             mBannerMap.put(location, new WeakReference<>(banner));
@@ -170,7 +174,8 @@ public final class ChartboostSingleton {
      * @param context         Required to initialize Chartboost SDK.
      * @param adapterDelegate The adapter delegate to which to forward Chartboost callbacks.
      */
-    public static void startChartboostInterstitial(Context context, AbstractChartboostAdapterDelegate adapterDelegate) {
+    public static void startChartboostInterstitial(Context context,
+                                                   AbstractChartboostAdapterDelegate adapterDelegate) {
         String location = adapterDelegate.getChartboostParams().getLocation();
         // Checks if an ad has already been sent for caching for the requested location, and fail
         // the ad request if it is.
@@ -185,7 +190,10 @@ public final class ChartboostSingleton {
         // Add this adapter delegate to mAdapterDelegates so that the events from
         // Chartboost SDK can be forwarded.
         addInterstitialDelegate(location, adapterDelegate);
-        startChartboost(context, adapterDelegate.getChartboostParams(), adapterDelegate, null);
+        startChartboost(context,
+                adapterDelegate.getChartboostParams(),
+                adapterDelegate,
+                null);
     }
 
     /**
@@ -195,7 +203,8 @@ public final class ChartboostSingleton {
      * @param context         Required to initialize Chartboost SDK.
      * @param adapterDelegate The adapter delegate to which to forward Chartboost callbacks.
      */
-    public static void startChartboostRewardedVideo(Context context, AbstractChartboostAdapterDelegate adapterDelegate) {
+    public static void startChartboostRewardedVideo(Context context,
+                                                    AbstractChartboostAdapterDelegate adapterDelegate) {
         String location = adapterDelegate.getChartboostParams().getLocation();
 
         // Checks if an ad has already been sent for caching for the requested location, and fail
@@ -214,7 +223,10 @@ public final class ChartboostSingleton {
         // Add this adapter delegate to mAdapterDelegates so that the events from
         // Chartboost SDK can be forwarded.
         addRewardedDelegate(location, adapterDelegate);
-        startChartboost(context, adapterDelegate.getChartboostParams(), adapterDelegate, null);
+        startChartboost(context,
+                adapterDelegate.getChartboostParams(),
+                adapterDelegate,
+                null);
     }
 
     /**
@@ -234,12 +246,16 @@ public final class ChartboostSingleton {
         WeakReference<ChartboostBanner> delegate = getChartboostBanner(location);
         if (delegate != null && delegate.get() != null) {
             Log.w(ChartboostMediationAdapter.TAG, "An banner ad has already been requested for the location: " + location);
-            adapterDelegate.didFailToLoadInterstitial(location, CBError.CBImpressionError.NO_AD_FOUND);
+            bannerListener.onAdCached(null,
+                    new ChartboostCacheError(new ChartboostCacheError(6).code));
             mBannerMap.remove(location);
             return;
         }
 
-        startChartboost(context, adapterDelegate.getChartboostParams(), adapterDelegate, bannerListener);
+        startChartboost(context,
+                adapterDelegate.getChartboostParams(),
+                adapterDelegate,
+                bannerListener);
     }
 
     /**
@@ -265,44 +281,74 @@ public final class ChartboostSingleton {
 
         if (!mIsChartboostInitialized) {
             mIsChartboostInitializing = true;
-            Chartboost.startWithAppId(context, params.getAppId(), params.getAppSignature());
-            Chartboost.setMediation(Chartboost.CBMediation.CBMediationAdMob, BuildConfig.SDK_VERSION, "8.0.1.0");
-            Chartboost.setLoggingLevel(CBLogging.Level.ALL);
-            Chartboost.setDelegate(getInstance());
-            Chartboost.setAutoCacheAds(false);
-            initBanner(context, params, bannerListener);
+            initChartboostSdk(context, params);
+            initBannerWithListener(context, params, bannerListener);
             adapterDelegate.didInitialize();
         } else {
-            initBanner(context, params, bannerListener);
+            initBannerWithListener(context, params, bannerListener);
             adapterDelegate.didInitialize();
         }
+    }
 
+    /**
+     * Only Chartboost sdk specific init
+     * @param context
+     * @param params
+     */
+    private static void initChartboostSdk(Context context, ChartboostParams params) {
+        Chartboost.startWithAppId(context, params.getAppId(), params.getAppSignature());
+        Chartboost.setMediation(
+                Chartboost.CBMediation.CBMediationAdMob,
+                Chartboost.getSDKVersion(),
+                com.google.ads.mediation.chartboost.BuildConfig.VERSION_NAME);
+        Chartboost.setLoggingLevel(CBLogging.Level.INTEGRATION);
+        Chartboost.setDelegate(getInstance());
+        Chartboost.setAutoCacheAds(false);
+    }
+
+    /**
+     * Init banner only if listener is provided
+     * @param context
+     * @param params
+     * @param bannerListener
+     */
+    private static void initBannerWithListener(Context context,
+                                               ChartboostParams params,
+                                               ChartboostBannerListener bannerListener) {
+        if (context != null && bannerListener != null && params != null) {
+            initBanner(context, params, bannerListener);
+        }
     }
 
     /**
      * Initialize {@link ChartboostBanner}. Can only be done after Chartboost sdk is initialized
      * and before didInitialize
+     *
      * @param context
      * @param params
      * @param bannerListener
      */
-    private static void initBanner(Context context, ChartboostParams params, ChartboostBannerListener bannerListener) {
-        if(bannerListener != null) {
-            String location = params.getLocation();
+    private static void initBanner(Context context,
+                                   ChartboostParams params,
+                                   ChartboostBannerListener bannerListener) {
+        String location = params.getLocation();
 
-            //Attach object to layout
-            LinearLayout bannerContainer = new LinearLayout(context);
-            LinearLayout.LayoutParams paramsLayout = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT);
-            paramsLayout.gravity = Gravity.CENTER_HORIZONTAL;
+        //Attach object to layout to inflate the banner
+        LinearLayout bannerContainer = new LinearLayout(context);
+        LinearLayout.LayoutParams paramsLayout = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        paramsLayout.gravity = Gravity.CENTER_HORIZONTAL;
 
-            ChartboostBanner chartboostBanner = new ChartboostBanner(context, location, BannerSize.STANDARD, bannerListener);
-            chartboostBanner.setAutomaticallyRefreshesContent(true);
-            bannerContainer.addView(chartboostBanner, paramsLayout);
-            addChartboostBanner(location, chartboostBanner);
-        }
+        ChartboostBanner chartboostBanner = new ChartboostBanner(context,
+                location,
+                params.getBannerSize(),
+                bannerListener);
+        chartboostBanner.setAutomaticallyRefreshesContent(false);
+        bannerContainer.addView(chartboostBanner, paramsLayout);
+        addChartboostBanner(location, chartboostBanner);
     }
+
     /**
      * This method will check if {@link Chartboost} already has ads loaded, if so sends the
      * necessary callbacks, else requests {@link Chartboost} to cache interstitial ads.
@@ -412,7 +458,8 @@ public final class ChartboostSingleton {
             // Interstitial ad has been loaded from the Chartboost API servers and cached locally.
             super.didCacheInterstitial(location);
 
-            WeakReference<AbstractChartboostAdapterDelegate> reference = getInterstitialDelegate(location);
+            WeakReference<AbstractChartboostAdapterDelegate> reference =
+                    getInterstitialDelegate(location);
             if (reference != null && reference.get() != null) {
                 reference.get().didCacheInterstitial(location);
             }
@@ -423,7 +470,8 @@ public final class ChartboostSingleton {
             // Interstitial ad has attempted to load from the Chartboost API servers but failed.
             super.didFailToLoadInterstitial(location, error);
 
-            WeakReference<AbstractChartboostAdapterDelegate> reference = getInterstitialDelegate(location);
+            WeakReference<AbstractChartboostAdapterDelegate> reference =
+                    getInterstitialDelegate(location);
             if (reference != null && reference.get() != null) {
                 reference.get().didFailToLoadInterstitial(location, error);
             }
