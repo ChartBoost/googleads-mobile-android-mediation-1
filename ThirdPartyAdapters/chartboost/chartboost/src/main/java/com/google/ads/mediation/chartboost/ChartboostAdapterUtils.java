@@ -214,9 +214,9 @@ class ChartboostAdapterUtils {
             int MEDIUM_WIDTH = BannerSize.getWidth(BannerSize.MEDIUM);
 
             if (adHeight >= LEADERBOARD_HEIGHT && adWidth >= LEADERBOARD_WIDTH) {
-                return BannerSize.MEDIUM;
-            } else if (adHeight >= MEDIUM_HEIGHT && adWidth >= MEDIUM_WIDTH) {
                 return BannerSize.LEADERBOARD;
+            } else if (adHeight >= MEDIUM_HEIGHT && adWidth >= MEDIUM_WIDTH) {
+                return BannerSize.MEDIUM;
             } else {
                 return BannerSize.STANDARD;
             }

@@ -24,12 +24,10 @@ import com.chartboost.sdk.Chartboost;
 import com.chartboost.sdk.ChartboostBanner;
 import com.chartboost.sdk.ChartboostBannerListener;
 import com.chartboost.sdk.ChartboostDelegate;
-import com.chartboost.sdk.Events.ChartboostCacheError;
 import com.chartboost.sdk.Libraries.CBLogging;
 import com.chartboost.sdk.Model.CBError;
 
 import java.lang.ref.WeakReference;
-import java.util.Collection;
 import java.util.HashMap;
 
 /**
@@ -47,12 +45,12 @@ public final class ChartboostSingleton {
     private static HashMap<String, WeakReference<AbstractChartboostAdapterDelegate>>
             mRewardedDelegates = new HashMap<>();
 
+
     /**
-     * Synchronized HashMaps of {@link ChartboostBanner} weak references
-     * keyed by their Chartboost location
+     * Banner object {@link ChartboostBanner}
      */
-    private static HashMap<String, WeakReference<ChartboostBanner>>
-            mBannerMap = new HashMap<>();
+    static ChartboostBanner mChartboostBanner;
+
     /**
      * Flag to keep track of whether or not {@link Chartboost} has initialized.
      */
@@ -110,16 +108,6 @@ public final class ChartboostSingleton {
     }
 
     /**
-     * Add Chartboost banner as a weak reference to a map
-     * @param location
-     * @param banner
-     */
-    private static void addChartboostBanner(String location, ChartboostBanner banner) {
-        if (!TextUtils.isEmpty(location) && banner != null) {
-            mBannerMap.put(location, new WeakReference<>(banner));
-        }
-    }
-    /**
      * Gets the weak reference of the {@link AbstractChartboostAdapterDelegate} linked to a given
      * Chartboost location
      *
@@ -149,24 +137,6 @@ public final class ChartboostSingleton {
         return null;
     }
 
-    protected static WeakReference<ChartboostBanner> getChartboostBanner(String location) {
-        if (!TextUtils.isEmpty(location) && mBannerMap.containsKey(location)) {
-            return mBannerMap.get(location);
-        }
-        return null;
-    }
-
-    protected static WeakReference<ChartboostBanner> detachBanners() {
-        Collection<WeakReference<ChartboostBanner>> banners = mBannerMap.values();
-        for(WeakReference<ChartboostBanner> ref : banners) {
-            if(ref != null && ref.get()!=null) {
-                ref.get().detachBanner();
-                ref.clear();
-            }
-        }
-        return null;
-    }
-
     /**
      * This method will initialize Chartboost SDK for interstitial ads and return whether or not
      * it successfully initialized.
@@ -183,7 +153,6 @@ public final class ChartboostSingleton {
         if (delegate != null && delegate.get() != null) {
             Log.w(ChartboostMediationAdapter.TAG, "An ad has already been requested for the location: " + location);
             adapterDelegate.didFailToLoadInterstitial(location, CBError.CBImpressionError.NO_AD_FOUND);
-            mInterstitialDelegates.remove(location);
             return;
         }
 
@@ -216,7 +185,6 @@ public final class ChartboostSingleton {
                     "An ad has already been requested for the location: " + location);
             adapterDelegate.didFailToLoadRewardedVideo(location,
                     CBError.CBImpressionError.NO_AD_FOUND);
-            mRewardedDelegates.remove(location);
             return;
         }
 
@@ -239,23 +207,13 @@ public final class ChartboostSingleton {
     public static void startChartboostBanner(Context context,
                                              AbstractChartboostAdapterDelegate adapterDelegate,
                                              ChartboostBannerListener bannerListener) {
-        String location = adapterDelegate.getChartboostParams().getLocation();
-
-        // Checks if an ad has already been sent for caching for the requested location, and fail
-        // the ad request if it is.
-        WeakReference<ChartboostBanner> delegate = getChartboostBanner(location);
-        if (delegate != null && delegate.get() != null) {
-            Log.w(ChartboostMediationAdapter.TAG, "An banner ad has already been requested for the location: " + location);
-            bannerListener.onAdCached(null,
-                    new ChartboostCacheError(new ChartboostCacheError(6).code));
-            mBannerMap.remove(location);
-            return;
-        }
-
         startChartboost(context,
                 adapterDelegate.getChartboostParams(),
                 adapterDelegate,
                 bannerListener);
+
+        initBannerWithListener(context, adapterDelegate.getChartboostParams(), bannerListener);
+        adapterDelegate.didInitialize();
     }
 
     /**
@@ -282,10 +240,8 @@ public final class ChartboostSingleton {
         if (!mIsChartboostInitialized) {
             mIsChartboostInitializing = true;
             initChartboostSdk(context, params);
-            initBannerWithListener(context, params, bannerListener);
             adapterDelegate.didInitialize();
         } else {
-            initBannerWithListener(context, params, bannerListener);
             adapterDelegate.didInitialize();
         }
     }
@@ -340,13 +296,12 @@ public final class ChartboostSingleton {
                 LinearLayout.LayoutParams.WRAP_CONTENT);
         paramsLayout.gravity = Gravity.CENTER_HORIZONTAL;
 
-        ChartboostBanner chartboostBanner = new ChartboostBanner(context,
+        mChartboostBanner = new ChartboostBanner(context,
                 location,
                 params.getBannerSize(),
                 bannerListener);
-        chartboostBanner.setAutomaticallyRefreshesContent(false);
-        bannerContainer.addView(chartboostBanner, paramsLayout);
-        addChartboostBanner(location, chartboostBanner);
+        mChartboostBanner.setAutomaticallyRefreshesContent(false);
+        bannerContainer.addView(mChartboostBanner, paramsLayout);
     }
 
     /**
@@ -414,11 +369,8 @@ public final class ChartboostSingleton {
     }
 
     protected static void loadBannerAd(AbstractChartboostAdapterDelegate delegate) {
-        // Get the location for which the ads need to be loaded.
-        String location = delegate.getChartboostParams().getLocation();
-        WeakReference<ChartboostBanner> ref = getChartboostBanner(location);
-        if(ref != null && ref.get() != null) {
-            ref.get().show();
+        if(mChartboostBanner != null) {
+            mChartboostBanner.show();
         }
     }
 

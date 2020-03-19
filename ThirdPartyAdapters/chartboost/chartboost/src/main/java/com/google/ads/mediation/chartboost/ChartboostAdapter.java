@@ -21,7 +21,6 @@ import android.view.View;
 import androidx.annotation.Keep;
 
 import com.chartboost.sdk.Chartboost.CBFramework;
-import com.chartboost.sdk.ChartboostBanner;
 import com.chartboost.sdk.ChartboostBannerListener;
 import com.chartboost.sdk.Events.ChartboostCacheError;
 import com.chartboost.sdk.Events.ChartboostCacheEvent;
@@ -193,7 +192,10 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
 
     @Override
     public void onDestroy() {
-        ChartboostSingleton.detachBanners();
+        if(ChartboostSingleton.mChartboostBanner != null) {
+            ChartboostSingleton.mChartboostBanner.detachBanner();
+            ChartboostSingleton.mChartboostBanner = null;
+        }
     }
 
     @Override
@@ -236,12 +238,7 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
 
     @Override
     public View getBannerView() {
-        WeakReference<ChartboostBanner> ref = ChartboostSingleton.getChartboostBanner(
-                mChartboostParams.getLocation());
-        if(ref != null) {
-            return ref.get();
-        }
-        return null;
+        return ChartboostSingleton.mChartboostBanner;
     }
 
     private ChartboostBannerListener createChartboostBannerListener() {
@@ -285,10 +282,6 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
                                 ChartboostAdapter.this);
                         mMediationBannerListener.onAdLeftApplication(
                                 ChartboostAdapter.this);
-                    } else {
-                        mMediationBannerListener.onAdFailedToLoad(
-                                ChartboostAdapter.this,
-                                parseChartboostErrorCodeToAdMobErrorCode(chartboostClickError.code));
                     }
                 }
             }
