@@ -80,6 +80,9 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
      */
     private ChartboostBanner mChartboostBanner;
 
+    /**
+     * Context reference {@link Context}
+     */
     private Context mContext;
 
     /**
@@ -332,8 +335,8 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
             super.didInitialize();
             if (mChartboostBanner == null) {
                 initBanner(mContext, mChartboostParams, mChartboostBannerListener);
-                mChartboostBanner.show();
             }
+            mChartboostBanner.show();
         }
     };
 
