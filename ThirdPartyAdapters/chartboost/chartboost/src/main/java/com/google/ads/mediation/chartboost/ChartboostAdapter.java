@@ -49,7 +49,7 @@ import static com.google.ads.mediation.chartboost.ChartboostAdapterUtils.parseCh
  */
 @Keep
 public class ChartboostAdapter extends ChartboostMediationAdapter implements
-    MediationInterstitialAdapter, MediationBannerAdapter, ChartboostBannerErrorListener {
+        MediationInterstitialAdapter, MediationBannerAdapter, ChartboostBannerErrorListener {
 
     protected static final String TAG = ChartboostAdapter.class.getSimpleName();
 
@@ -59,8 +59,8 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
     private boolean mIsLoading;
 
     /**
-     * Mediation interstitial listener used to forward interstitial ad events from Chartboost SDK to
-     * Google Mobile Ads SDK.
+     * Mediation interstitial listener used to forward interstitial ad events from Chartboost SDK
+     * to Google Mobile Ads SDK.
      */
     private MediationInterstitialListener mMediationInterstitialListener;
 
@@ -187,8 +187,8 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
             // Invalid server parameters, send ad failed to load event.
             if (mMediationInterstitialListener != null) {
                 mMediationInterstitialListener.onAdFailedToLoad(
-                    ChartboostAdapter.this,
-                    AdRequest.ERROR_CODE_INVALID_REQUEST);
+                        ChartboostAdapter.this,
+                        AdRequest.ERROR_CODE_INVALID_REQUEST);
             }
             return;
         }
@@ -282,9 +282,9 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
     private ChartboostBannerListener mChartboostBannerListener = new ChartboostBannerListener() {
         @Override
         public void onAdCached(ChartboostCacheEvent chartboostCacheEvent,
-            ChartboostCacheError chartboostCacheError) {
-            if (mMediationBannerListener != null) {
-                if (chartboostCacheError == null) {
+                               ChartboostCacheError chartboostCacheError) {
+            if(mMediationBannerListener!=null) {
+                if(chartboostCacheError == null) {
                     mMediationBannerListener.onAdLoaded(
                         ChartboostAdapter.this);
                 } else {
@@ -297,8 +297,8 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
 
         @Override
         public void onAdShown(ChartboostShowEvent chartboostShowEvent,
-            ChartboostShowError chartboostShowError) {
-            if (mMediationBannerListener != null) {
+                              ChartboostShowError chartboostShowError) {
+            if(mMediationBannerListener!=null) {
                 if (chartboostShowError == null) {
                     mMediationBannerListener.onAdOpened(
                         ChartboostAdapter.this);
@@ -312,7 +312,7 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
 
         @Override
         public void onAdClicked(ChartboostClickEvent chartboostClickEvent,
-            ChartboostClickError chartboostClickError) {
+                                ChartboostClickError chartboostClickError) {
             if (mMediationBannerListener != null) {
                 if (chartboostClickError == null) {
                     mMediationBannerListener.onAdClicked(
@@ -349,8 +349,8 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
 
     /**
      * The {@link com.google.ads.mediation.chartboost.ChartboostAdapter
-     * .ChartboostExtrasBundleBuilder} class is used to create a networkExtras bundle which can be
-     * passed to the adapter to make network specific customizations.
+     * .ChartboostExtrasBundleBuilder} class is used to create a networkExtras bundle which can
+     * be passed to the adapter to make network specific customizations.
      */
     public static final class ChartboostExtrasBundleBuilder {
 
@@ -375,7 +375,7 @@ public class ChartboostAdapter extends ChartboostMediationAdapter implements
         private String cbFrameworkVersion;
 
         public ChartboostExtrasBundleBuilder setFramework(CBFramework framework,
-            String version) {
+                                                          String version) {
             this.cbFramework = framework;
             this.cbFrameworkVersion = version;
             return this;

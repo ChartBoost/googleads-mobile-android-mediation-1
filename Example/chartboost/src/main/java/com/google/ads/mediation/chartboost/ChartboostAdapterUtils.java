@@ -33,6 +33,11 @@ class ChartboostAdapterUtils {
     static final String KEY_AD_LOCATION = "adLocation";
 
     /**
+     * Key to obtain Ad Location. This is added in adapter version 1.1.0.
+     */
+    static final String KEY_AD_LOCATION = "adLocation";
+
+    /**
      * Creates and return a new {@link ChartboostParams} object populated with the parameters obtained
      * from the server parameters and network extras bundles.
      *
@@ -67,14 +72,13 @@ class ChartboostAdapterUtils {
         params.setLocation(adLocation.trim());
 
         if (networkExtras != null) {
-            if (networkExtras
-                .containsKey(ChartboostAdapter.ChartboostExtrasBundleBuilder.KEY_FRAMEWORK)
-                && networkExtras.containsKey(
-                ChartboostAdapter.ChartboostExtrasBundleBuilder.KEY_FRAMEWORK_VERSION)) {
+            if (networkExtras.containsKey(ChartboostAdapter.ChartboostExtrasBundleBuilder.KEY_FRAMEWORK)
+                    && networkExtras.containsKey(
+                    ChartboostAdapter.ChartboostExtrasBundleBuilder.KEY_FRAMEWORK_VERSION)) {
                 params.setFramework((Chartboost.CBFramework) networkExtras.getSerializable(
-                    ChartboostAdapter.ChartboostExtrasBundleBuilder.KEY_FRAMEWORK));
+                        ChartboostAdapter.ChartboostExtrasBundleBuilder.KEY_FRAMEWORK));
                 params.setFrameworkVersion(networkExtras.getString(
-                    ChartboostAdapter.ChartboostExtrasBundleBuilder.KEY_FRAMEWORK_VERSION));
+                        ChartboostAdapter.ChartboostExtrasBundleBuilder.KEY_FRAMEWORK_VERSION));
             }
         }
         return params;
@@ -84,15 +88,15 @@ class ChartboostAdapterUtils {
      * Checks whether or not the provided {@link ChartboostParams} is valid.
      *
      * @param params Chartboost params to be examined.
-     * @return {@code true} if the given ChartboostParams' appId and appSignature are valid, false
-     * otherwise.
+     * @return {@code true} if the given ChartboostParams' appId and appSignature are valid,
+     * false otherwise.
      */
     static boolean isValidChartboostParams(ChartboostParams params) {
         String appId = params.getAppId();
         String appSignature = params.getAppSignature();
         if (!isValidParam(appId) || !isValidParam(appSignature)) {
             String log = !isValidParam(appId) ? (!isValidParam(appSignature)
-                ? "App ID and App Signature" : "App ID") : "App Signature";
+                    ? "App ID and App Signature" : "App ID") : "App Signature";
             Log.w(ChartboostMediationAdapter.TAG, log + " cannot be empty.");
             return false;
         }
@@ -103,16 +107,16 @@ class ChartboostAdapterUtils {
      * Checks whether or not the Chartboost parameter string provided is valid.
      *
      * @param string the string to be examined.
-     * @return {@code true} if the param string is not null and length when trimmed is not zero,
-     * {@code false} otherwise.
+     * @return {@code true} if the param string is not null and length when trimmed is not
+     * zero, {@code false} otherwise.
      */
     static boolean isValidParam(String string) {
         return !(string == null || string.trim().length() == 0);
     }
 
     /**
-     * Chartboost requires an Activity context to Initialize. This method will return false if the
-     * context provided is either null or is not an Activity context.
+     * Chartboost requires an Activity context to Initialize. This method will return false if
+     * the context provided is either null or is not an Activity context.
      *
      * @param context to be checked if it is valid.
      * @return {@code true} if the context provided is valid, {@code false} otherwise.
@@ -125,8 +129,8 @@ class ChartboostAdapterUtils {
 
         if (!(context instanceof Activity)) {
             Log.w(ChartboostAdapter.TAG,
-                "Context is not an Activity. " +
-                    "Chartboost requires an Activity context to load ads.");
+                    "Context is not an Activity. " +
+                            "Chartboost requires an Activity context to load ads.");
             return false;
         }
         return true;
@@ -135,8 +139,8 @@ class ChartboostAdapterUtils {
     /**
      * Converts a Chartboost SDK error code to a Google Mobile Ads SDK error code.
      *
-     * @param error CBImpressionError type to be translated to Google Mobile Ads SDK readable error
-     *              code.
+     * @param error CBImpressionError type to be translated to Google Mobile Ads SDK readable
+     *              error code.
      * @return Ad request error code.
      */
     static int getAdRequestErrorType(CBError.CBImpressionError error) {

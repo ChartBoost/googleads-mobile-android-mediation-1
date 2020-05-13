@@ -15,10 +15,6 @@ ext {
     stringGroupId = "com.google.ads.mediation"
 }
 
-repositories {
-    maven { url  "https://chartboostmobile.bintray.com/Chartboost" }
-}
-
 android {
     compileSdkVersion 28
     defaultConfig {
@@ -33,12 +29,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-}
 
 dependencies {
     implementation 'com.chartboost:chartboost-sdk:8.0.2'
