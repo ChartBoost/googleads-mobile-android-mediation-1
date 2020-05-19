@@ -41,7 +41,7 @@ public class ChartboostMediationAdapter extends Adapter implements MediationRewa
    */
   @Override
   public VersionInfo getVersionInfo() {
-    String versionString = "8.0.2.0";//BuildConfig.VERSION_NAME;
+    String versionString = BuildConfig.VERSION_NAME;
     String[] splits = versionString.split("\\.");
 
     if (splits.length >= 4) {

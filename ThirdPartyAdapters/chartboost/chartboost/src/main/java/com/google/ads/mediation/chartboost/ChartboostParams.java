@@ -54,7 +54,6 @@ public class ChartboostParams {
    * Size of the Chartboost banner required to create a banner
    */
   private BannerSize cbBannerSize;
-
   /**
    * Default constructor, sets a default value for {@link #cbLocation}.
    */
