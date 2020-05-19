@@ -89,7 +89,7 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="16dp"
         ads:adSize="BANNER"
-        ads:adUnitId="@string/adapter_banner_ad_unit_id" />
+        ads:adUnitId="ca-app-pub-3476091497339593/4283101343" />
 
     <Button
         android:id="@+id/customeventinterstitial_button"

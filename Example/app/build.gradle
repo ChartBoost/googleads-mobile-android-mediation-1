@@ -16,11 +16,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     implementation rootProject.ext.appcompat
     implementation rootProject.ext.playServicesAds
     implementation project(':adapter')
+    implementation project(':chartboost')
     implementation project(':customevent')
 }

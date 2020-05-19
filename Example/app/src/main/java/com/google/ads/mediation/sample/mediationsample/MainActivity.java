@@ -28,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.ads.mediation.chartboost.ChartboostAdapter;
 import com.google.ads.mediation.sample.adapter.SampleAdapter;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
@@ -47,6 +48,10 @@ import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
  * custom event.
  */
 public class MainActivity extends AppCompatActivity {
+
+  private final String interstitialAdMobIdWithChartboostAdapter = "ca-app-pub-3476091497339593/8098616488";
+  private final String rewardedAdMobIdWithChartboostAdapter = "ca-app-pub-3476091497339593/4003899743";
+  private final String bannerAdMobIdWithChartboostAdapter = "ca-app-pub-3476091497339593/4283101343";
 
   private InterstitialAd customEventInterstitial;
   private InterstitialAd adapterInterstitial;
@@ -88,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
     // Sample custom event interstitial.
     customEventInterstitial = new InterstitialAd(this);
     customEventInterstitial.setAdUnitId(
-        getResources().getString(R.string.customevent_interstitial_ad_unit_id));
+        interstitialAdMobIdWithChartboostAdapter);
     customEventInterstitial.setAdListener(new AdListener() {
       @Override
       public void onAdFailedToLoad(int errorCode) {
@@ -110,10 +115,10 @@ public class MainActivity extends AppCompatActivity {
 
       @Override
       public void onAdClosed() {
-        customEventInterstitial.loadAd(new AdRequest.Builder().build());
+        customEventInterstitial.loadAd(getChartboostRequest());
       }
     });
-    customEventInterstitial.loadAd(new AdRequest.Builder().build());
+    customEventInterstitial.loadAd(getChartboostRequest());
 
     /**
      * Sample Adapter.
@@ -133,9 +138,7 @@ public class MainActivity extends AppCompatActivity {
         .setIncome(100000)
         .setShouldAddAwesomeSauce(true)
         .build();
-    AdRequest bannerAdRequest = new AdRequest.Builder()
-        .addNetworkExtrasBundle(SampleAdapter.class, extras)
-        .build();
+    AdRequest bannerAdRequest = getChartboostRequest();
     mAdapterAdView.loadAd(bannerAdRequest);
 
     // Sample adapter interstitial button.
@@ -152,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
     // Sample adapter interstitial.
     adapterInterstitial = new InterstitialAd(this);
     adapterInterstitial.setAdUnitId(
-        getResources().getString(R.string.adapter_interstitial_ad_unit_id));
+        interstitialAdMobIdWithChartboostAdapter);
     adapterInterstitial.setAdListener(new AdListener() {
       @Override
       public void onAdFailedToLoad(int errorCode) {
@@ -174,14 +177,14 @@ public class MainActivity extends AppCompatActivity {
 
       @Override
       public void onAdClosed() {
-        adapterInterstitial.loadAd(new AdRequest.Builder().build());
+        adapterInterstitial.loadAd(getChartboostRequest());
       }
     });
 
     AdRequest interstitialAdRequest = new AdRequest.Builder()
         .addNetworkExtrasBundle(SampleAdapter.class, extras)
         .build();
-    adapterInterstitial.loadAd(interstitialAdRequest);
+    adapterInterstitial.loadAd(getChartboostRequest());
 
     /**
      * Sample Custom Event Native ad.
@@ -364,8 +367,8 @@ public class MainActivity extends AppCompatActivity {
         adapterRewardedButton.setEnabled(true);
       }
     };
-    rewardedAd = new RewardedAd(this, getString(R.string.adapter_rewarded_ad_unit_id));
-    rewardedAd.loadAd(new AdRequest.Builder().build(), adLoadCallback);
+    rewardedAd = new RewardedAd(this, rewardedAdMobIdWithChartboostAdapter);
+    rewardedAd.loadAd(getChartboostRequest(), adLoadCallback);
   }
 
   private void requestCustomEventRewardedAd() {
@@ -384,8 +387,8 @@ public class MainActivity extends AppCompatActivity {
       }
     };
     customEventRewardedAd = new RewardedAd(this,
-        getString(R.string.customevent_rewarded_ad_unit_id));
-    customEventRewardedAd.loadAd(new AdRequest.Builder().build(), adLoadCallback);
+        rewardedAdMobIdWithChartboostAdapter);
+    customEventRewardedAd.loadAd(getChartboostRequest(), adLoadCallback);
   }
 
   private void loadAdapterNativeAd(Bundle extras) {
@@ -477,5 +480,11 @@ public class MainActivity extends AppCompatActivity {
     // native ad view with this native ad. The SDK will populate the adView's MediaView
     // with the media content from this native ad.
     adView.setNativeAd(nativeAd);
+  }
+
+  private AdRequest getChartboostRequest() {
+    ChartboostAdapter.ChartboostExtrasBundleBuilder builder = new ChartboostAdapter.ChartboostExtrasBundleBuilder();
+    Bundle bundle = builder.build();
+    return new AdRequest.Builder().addNetworkExtrasBundle(ChartboostAdapter.class, bundle).build();
   }
 }
