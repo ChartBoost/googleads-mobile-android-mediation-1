@@ -43,7 +43,8 @@ import com.google.android.gms.ads.mediation.MediationInterstitialAdapter;
 import com.google.android.gms.ads.mediation.MediationInterstitialListener;
 
 import static com.google.ads.mediation.chartboost.ChartboostAdapterUtils.chartboostAdSizeFromLocalExtras;
-import static com.google.ads.mediation.chartboost.ChartboostAdapterUtils.parseChartboostErrorCodeToAdMobErrorCode;
+import static com.google.ads.mediation.chartboost.ChartboostAdapterUtils.parseBannerCacheErrorCodeToAdMobErrorCode;
+import static com.google.ads.mediation.chartboost.ChartboostAdapterUtils.parseBannerShowErrorCodeToAdMobErrorCode;
 
 /**
  * The {@link ChartboostAdapter} class is used to load Chartboost rewarded-based video &
@@ -274,8 +275,7 @@ public class ChartboostAdapter extends ChartboostMediationAdapter
   }
 
   /**
-   * Initialize {@link ChartboostBanner}. Can only be done after Chartboost sdk is initialized and
-   * before didInitialize
+   * Create new {@link ChartboostBanner} object and wrap banner in the container view.
    *
    * @param context
    * @param params
@@ -285,7 +285,7 @@ public class ChartboostAdapter extends ChartboostMediationAdapter
       ChartboostParams params,
       ChartboostBannerListener bannerListener) {
     String location = params.getLocation();
-    //Attach object to layout to inflate the banner
+    // Attach object to layout to inflate the banner.
     LinearLayout bannerContainer = new LinearLayout(context);
     LinearLayout.LayoutParams paramsLayout = new LinearLayout.LayoutParams(
         LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -322,7 +322,7 @@ public class ChartboostAdapter extends ChartboostMediationAdapter
         } else {
           mMediationBannerListener.onAdFailedToLoad(
               ChartboostAdapter.this,
-              parseChartboostErrorCodeToAdMobErrorCode(chartboostCacheError.code));
+              parseBannerCacheErrorCodeToAdMobErrorCode(chartboostCacheError.code));
           removeBannerDelegate();
         }
       }
@@ -338,7 +338,7 @@ public class ChartboostAdapter extends ChartboostMediationAdapter
         } else {
           mMediationBannerListener.onAdFailedToLoad(
               ChartboostAdapter.this,
-              parseChartboostErrorCodeToAdMobErrorCode(chartboostShowError.code));
+              parseBannerShowErrorCodeToAdMobErrorCode(chartboostShowError.code));
           removeBannerDelegate();
         }
       }
@@ -347,13 +347,11 @@ public class ChartboostAdapter extends ChartboostMediationAdapter
     @Override
     public void onAdClicked(ChartboostClickEvent chartboostClickEvent,
         ChartboostClickError chartboostClickError) {
-      if (mMediationBannerListener != null) {
-        if (chartboostClickError == null) {
-          mMediationBannerListener.onAdClicked(
-              ChartboostAdapter.this);
-          mMediationBannerListener.onAdLeftApplication(
-              ChartboostAdapter.this);
-        }
+      if (chartboostClickError == null && mMediationBannerListener != null) {
+        mMediationBannerListener.onAdClicked(
+            ChartboostAdapter.this);
+        mMediationBannerListener.onAdLeftApplication(
+            ChartboostAdapter.this);
       }
     }
   };
