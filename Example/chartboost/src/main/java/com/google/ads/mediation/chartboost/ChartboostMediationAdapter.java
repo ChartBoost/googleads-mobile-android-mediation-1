@@ -79,7 +79,6 @@ public class ChartboostMediationAdapter extends Adapter implements MediationRewa
   public void initialize(Context context,
       InitializationCompleteCallback initializationCompleteCallback,
       List<MediationConfiguration> mediationConfigurations) {
-    Log.e("test", "initialize");
     HashMap<String, Bundle> chartboostConfigs = new HashMap<>();
     for (MediationConfiguration configuration : mediationConfigurations) {
       Bundle params = configuration.getServerParameters();
@@ -108,9 +107,7 @@ public class ChartboostMediationAdapter extends Adapter implements MediationRewa
           "Initialization failed:Missing or invalid App ID.");
       return;
     }
-    Log.e("test", "initialize");
     mInitializationCallback = initializationCompleteCallback;
-
     mChartboostParams = ChartboostAdapterUtils.createChartboostParams(serverParameters, null);
     if (!ChartboostAdapterUtils.isValidChartboostParams(mChartboostParams)) {
       // Invalid server parameters, send initialization failed event.
@@ -118,8 +115,6 @@ public class ChartboostMediationAdapter extends Adapter implements MediationRewa
           "Initialization Failed: Invalid server parameters.");
       return;
     }
-    Log.e("test", "initialize startChartboostRewardedVideo");
-
     ChartboostSingleton.startChartboostRewardedVideo(context, mChartboostRewardedVideoDelegate);
   }
 
@@ -175,7 +170,6 @@ public class ChartboostMediationAdapter extends Adapter implements MediationRewa
         @Override
         public void didInitialize() {
           super.didInitialize();
-          Log.e("test", "mChartboostRewardedVideoDelegate init");
           if (mInitializationCallback != null) {
             mInitializationCallback.onInitializationSucceeded();
           }
