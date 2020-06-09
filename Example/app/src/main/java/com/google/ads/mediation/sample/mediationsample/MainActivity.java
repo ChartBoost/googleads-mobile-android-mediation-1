@@ -64,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
   private AdLoader adapterNativeLoader;
   private AdLoader customEventNativeLoader;
 
+  private AdView mAdapterAdView;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -127,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
      * 3) Create the sample adapter interstitial.
      */
     // Sample adapter banner.
-    AdView mAdapterAdView = (AdView) findViewById(R.id.adapter_adview);
+    mAdapterAdView = (AdView) findViewById(R.id.adapter_adview);
 
     // The sample adapter provides a builder to make it easier for publisher to create
     // bundles containing "extra" values the get passed to the adapter when an ad is
@@ -480,6 +482,12 @@ public class MainActivity extends AppCompatActivity {
     // native ad view with this native ad. The SDK will populate the adView's MediaView
     // with the media content from this native ad.
     adView.setNativeAd(nativeAd);
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    mAdapterAdView.destroy();
   }
 
   private AdRequest getChartboostRequest() {
