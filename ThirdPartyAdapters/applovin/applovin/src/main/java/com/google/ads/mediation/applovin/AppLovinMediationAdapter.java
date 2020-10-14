@@ -4,7 +4,7 @@ import static android.util.Log.DEBUG;
 import static android.util.Log.ERROR;
 import static com.applovin.mediation.ApplovinAdapter.log;
 
-import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -14,7 +14,6 @@ import androidx.annotation.NonNull;
 import com.applovin.adview.AppLovinIncentivizedInterstitial;
 import com.applovin.mediation.AppLovinIncentivizedAdListener;
 import com.applovin.mediation.AppLovinUtils;
-import com.applovin.mediation.ApplovinAdapter;
 import com.applovin.mediation.BuildConfig;
 import com.applovin.mediation.rtb.AppLovinRtbBannerRenderer;
 import com.applovin.mediation.rtb.AppLovinRtbInterstitialRenderer;
@@ -80,19 +79,19 @@ public class AppLovinMediationAdapter extends RtbAdapter
    * Applovin adapter errors.
    */
   @Retention(RetentionPolicy.SOURCE)
-  @IntDef(value = {
-      ERROR_BANNER_SIZE_MISMATCH,
-      ERROR_REQUIRES_UNIFIED_NATIVE_ADS,
-      ERROR_NULL_CONTEXT,
-      ERROR_EMPTY_BID_TOKEN,
-      ERROR_AD_ALREADY_REQUESTED,
-      ERROR_PRESENTATON_AD_NOT_READY,
-      ERROR_MAPPING_NATIVE_ASSETS,
-      ERROR_AD_FORMAT_UNSUPPORTED,
-      ERROR_CONTEXT_NOT_ACTIVITY
-  })
-
-  public @interface Error {
+  @IntDef(
+      value = {
+          ERROR_BANNER_SIZE_MISMATCH,
+          // ERROR_REQUIRES_UNIFIED_NATIVE_ADS,
+          ERROR_NULL_CONTEXT,
+          ERROR_EMPTY_BID_TOKEN,
+          ERROR_AD_ALREADY_REQUESTED,
+          ERROR_PRESENTATON_AD_NOT_READY,
+          // ERROR_MAPPING_NATIVE_ASSETS,
+          ERROR_AD_FORMAT_UNSUPPORTED,
+          // ERROR_CONTEXT_NOT_ACTIVITY
+      })
+  public @interface AdapterError {
 
   }
 
@@ -100,48 +99,56 @@ public class AppLovinMediationAdapter extends RtbAdapter
    * Banner size mismatch.
    */
   public static final int ERROR_BANNER_SIZE_MISMATCH = 101;
+
   /**
-   * App did not request unified native ads.
+   * App did not request unified native ads. This error code is no longer used.
    */
-  public static final int ERROR_REQUIRES_UNIFIED_NATIVE_ADS = 102;
+  // public static final int ERROR_REQUIRES_UNIFIED_NATIVE_ADS = 102;
+
   /**
    * Context is null.
    */
   public static final int ERROR_NULL_CONTEXT = 103;
+
   /**
    * AppLovin bid token is empty.
    */
   public static final int ERROR_EMPTY_BID_TOKEN = 104;
+
   /**
    * Requested multiple ads for the same zone. AppLovin can only load 1 ad at a time per zone.
    */
   public static final int ERROR_AD_ALREADY_REQUESTED = 105;
+
   /**
    * Ad is not ready to display.
    */
   public static final int ERROR_PRESENTATON_AD_NOT_READY = 106;
+
   /**
-   * Native ad is missing required assets.
+   * Native ad is missing required assets. This error code is no longer used.
    */
-  public static final int ERROR_MAPPING_NATIVE_ASSETS = 107;
+  // public static final int ERROR_MAPPING_NATIVE_ASSETS = 107;
+
   /**
    * Adapter does not support the ad format being requested.
    */
   public static final int ERROR_AD_FORMAT_UNSUPPORTED = 108;
+
   /**
-   * Context is not an Activity instance.
+   * Context is not an Activity instance. This error code is no longer used, as AppLovin can
+   * accept an {@link Application} context.
    */
-  public static final int ERROR_CONTEXT_NOT_ACTIVITY = 109;
+  // public static final int ERROR_CONTEXT_NOT_ACTIVITY = 109;
 
   /**
    * Creates a formatted adapter error string given a code and description.
    */
-  public static String createAdapterError(@NonNull @AppLovinMediationAdapter.Error int code,
-      String description) {
+  public static String createAdapterError(@AdapterError int code, @NonNull String description) {
     return String.format("%d: %s", code, description);
   }
 
-  public static String createSDKError(@NonNull int code) {
+  public static String createSDKError(int code) {
     String message = "AppLovin SDK returned a failure callback.";
     return String.format("%d: %s", code, message);
   }
@@ -152,19 +159,12 @@ public class AppLovinMediationAdapter extends RtbAdapter
       List<MediationConfiguration> mediationConfigurations) {
     log(DEBUG, "Attempting to initialize SDK.");
 
-    if (!(context instanceof Activity)) {
-      initializationCompleteCallback.onInitializationFailed(
-          "AppLovin requires an Activity context to initialize.");
-      return;
-    }
-    Activity activity = (Activity) context;
-
-    if (AppLovinUtils.androidManifestHasValidSdkKey(activity)) {
-      AppLovinSdk.getInstance(activity).initializeSdk();
+    if (AppLovinUtils.androidManifestHasValidSdkKey(context)) {
+      AppLovinSdk.getInstance(context).initializeSdk();
     }
 
     for (MediationConfiguration mediationConfig : mediationConfigurations) {
-      AppLovinSdk sdk = AppLovinUtils.retrieveSdk(mediationConfig.getServerParameters(), activity);
+      AppLovinSdk sdk = AppLovinUtils.retrieveSdk(mediationConfig.getServerParameters(), context);
       sdk.initializeSdk();
     }
     initializationCompleteCallback.onInitializationSucceeded();
@@ -182,8 +182,10 @@ public class AppLovinMediationAdapter extends RtbAdapter
       return new VersionInfo(major, minor, micro);
     }
 
-    String logMessage = String.format("Unexpected adapter version format: %s." +
-        "Returning 0.0.0 for adapter version.", versionString);
+    String logMessage =
+        String.format(
+            "Unexpected adapter version format: %s. Returning 0.0.0 for adapter version.",
+            versionString);
     Log.w(TAG, logMessage);
     return new VersionInfo(0, 0, 0);
   }
@@ -200,8 +202,9 @@ public class AppLovinMediationAdapter extends RtbAdapter
       return new VersionInfo(major, minor, patch);
     }
 
-    String logMessage = String.format("Unexpected SDK version format: %s." +
-        "Returning 0.0.0 for SDK version.", versionString);
+    String logMessage =
+        String.format(
+            "Unexpected SDK version format: %s. Returning 0.0.0 for SDK version.", versionString);
     Log.w(TAG, logMessage);
     return new VersionInfo(0, 0, 0);
   }
@@ -209,20 +212,11 @@ public class AppLovinMediationAdapter extends RtbAdapter
   @Override
   public void loadRewardedAd(
       MediationRewardedAdConfiguration mediationRewardedAdConfiguration,
-      final MediationAdLoadCallback<MediationRewardedAd,
-          MediationRewardedAdCallback> mediationAdLoadCallback) {
+      final MediationAdLoadCallback<MediationRewardedAd, MediationRewardedAdCallback>
+          mediationAdLoadCallback) {
 
     adConfiguration = mediationRewardedAdConfiguration;
     Context context = adConfiguration.getContext();
-
-    if (!(context instanceof Activity)) {
-      String adapterError =
-          createAdapterError(
-              ERROR_CONTEXT_NOT_ACTIVITY, "AppLovin requires an Activity context to load ads.");
-      log(ERROR, "Failed to load rewarded ad from AppLovin: " + adapterError);
-      mediationAdLoadCallback.onFailure(adapterError);
-      return;
-    }
 
     if (mediationRewardedAdConfiguration.getBidResponse().equals("")) {
       isRtbAd = false;
@@ -242,12 +236,13 @@ public class AppLovinMediationAdapter extends RtbAdapter
         // Check if incentivized ad for zone already exists.
         if (INCENTIVIZED_ADS.containsKey(mZoneId)) {
           mIncentivizedInterstitial = INCENTIVIZED_ADS.get(mZoneId);
-          String errorMessage = createAdapterError(ERROR_AD_ALREADY_REQUESTED,
-              "Cannot load multiple ads with the same Zone ID. " +
-                  "Display one ad before attempting to load another.");
+          String errorMessage =
+              createAdapterError(
+                  ERROR_AD_ALREADY_REQUESTED,
+                  "Cannot load multiple rewarded ads with the same Zone ID. "
+                      + "Display one ad before attempting to load another.");
           log(ERROR, errorMessage);
           mMediationAdLoadCallback.onFailure(errorMessage);
-
         } else {
           // If this is a default Zone, create the incentivized ad normally
           if (DEFAULT_ZONE.equals(mZoneId)) {
@@ -284,8 +279,8 @@ public class AppLovinMediationAdapter extends RtbAdapter
 
     if (!isRtbAd) {
       if (!mIncentivizedInterstitial.isAdReadyToDisplay()) {
-        String errorMessage = createAdapterError(ERROR_PRESENTATON_AD_NOT_READY,
-            "Ad Failed to show");
+        String errorMessage =
+            createAdapterError(ERROR_PRESENTATON_AD_NOT_READY, "Ad Failed to show.");
         mRewardedAdCallback.onAdFailedToShow(errorMessage);
       } else {
         mIncentivizedInterstitial.show(context, listener, listener, listener, listener);
@@ -301,8 +296,10 @@ public class AppLovinMediationAdapter extends RtbAdapter
 
     // Check if supported ad format
     if (config.getFormat() == AdFormat.NATIVE) {
-      String errorMessage = createAdapterError(ERROR_AD_FORMAT_UNSUPPORTED,
-          "Requested to collect signal for unsupported native ad format. Ignoring...");
+      String errorMessage =
+          createAdapterError(
+              ERROR_AD_FORMAT_UNSUPPORTED,
+              "Requested to collect signal for unsupported native ad format. Ignoring...");
       handleCollectSignalsFailure(errorMessage, signalCallbacks);
       return;
     }
@@ -312,16 +309,16 @@ public class AppLovinMediationAdapter extends RtbAdapter
       Log.i(TAG, "Extras for signal collection: " + rtbSignalData.getNetworkExtras());
     }
 
-    AppLovinSdk sdk = AppLovinUtils
-        .retrieveSdk(config.getServerParameters(), rtbSignalData.getContext());
+    AppLovinSdk sdk =
+        AppLovinUtils.retrieveSdk(config.getServerParameters(), rtbSignalData.getContext());
     String bidToken = sdk.getAdService().getBidToken();
 
     if (!TextUtils.isEmpty(bidToken)) {
       Log.i(TAG, "Generated bid token: " + bidToken);
       signalCallbacks.onSuccess(bidToken);
     } else {
-      String errorMessage = createAdapterError(ERROR_EMPTY_BID_TOKEN,
-          "Failed to generate bid token");
+      String errorMessage =
+          createAdapterError(ERROR_EMPTY_BID_TOKEN, "Failed to generate bid token.");
       handleCollectSignalsFailure(errorMessage, signalCallbacks);
     }
   }
@@ -334,22 +331,21 @@ public class AppLovinMediationAdapter extends RtbAdapter
   @Override
   public void loadBannerAd(
       MediationBannerAdConfiguration mediationBannerAdConfiguration,
-      MediationAdLoadCallback<MediationBannerAd,
-          MediationBannerAdCallback> mediationAdLoadCallback) {
+      MediationAdLoadCallback<MediationBannerAd, MediationBannerAdCallback>
+          mediationAdLoadCallback) {
 
-    mRtbBannerRenderer = new AppLovinRtbBannerRenderer(mediationBannerAdConfiguration,
-        mediationAdLoadCallback);
+    mRtbBannerRenderer =
+        new AppLovinRtbBannerRenderer(mediationBannerAdConfiguration, mediationAdLoadCallback);
     mRtbBannerRenderer.loadAd();
   }
 
   @Override
   public void loadInterstitialAd(
       MediationInterstitialAdConfiguration mediationInterstitialAdConfiguration,
-      MediationAdLoadCallback<MediationInterstitialAd,
-          MediationInterstitialAdCallback> callback) {
+      MediationAdLoadCallback<MediationInterstitialAd, MediationInterstitialAdCallback> callback) {
 
-    mRtbInterstitialRenderer = new AppLovinRtbInterstitialRenderer(
-        mediationInterstitialAdConfiguration, callback);
+    mRtbInterstitialRenderer =
+        new AppLovinRtbInterstitialRenderer(mediationInterstitialAdConfiguration, callback);
     mRtbInterstitialRenderer.loadAd();
   }
 
@@ -357,13 +353,13 @@ public class AppLovinMediationAdapter extends RtbAdapter
   public void adReceived(final AppLovinAd appLovinAd) {
     ad = appLovinAd;
     Log.d("INFO", "Rewarded video did load ad: " + ad.getAdIdNumber());
-    AppLovinSdkUtils.runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        mRewardedAdCallback = mMediationAdLoadCallback
-            .onSuccess(AppLovinMediationAdapter.this);
-      }
-    });
+    AppLovinSdkUtils.runOnUiThread(
+        new Runnable() {
+          @Override
+          public void run() {
+            mRewardedAdCallback = mMediationAdLoadCallback.onSuccess(AppLovinMediationAdapter.this);
+          }
+        });
   }
 
   @Override
@@ -373,11 +369,12 @@ public class AppLovinMediationAdapter extends RtbAdapter
     if (!isRtbAd) {
       INCENTIVIZED_ADS.remove(mZoneId);
     }
-    AppLovinSdkUtils.runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        mMediationAdLoadCallback.onFailure(errorMessage);
-      }
-    });
+    AppLovinSdkUtils.runOnUiThread(
+        new Runnable() {
+          @Override
+          public void run() {
+            mMediationAdLoadCallback.onFailure(errorMessage);
+          }
+        });
   }
 }

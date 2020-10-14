@@ -1,5 +1,30 @@
 ## MoPub Android Mediation Adapter Changelog
 
+#### Version 5.14.0.0
+- Verified compatibility with MoPub SDK 5.14.0.
+- Updated the minimum required Google Mobile Ads SDK version to 19.4.0.
+
+Built and tested with:
+- Google Mobile Ads SDK version 19.4.0.
+- MoPub SDK version 5.14.0.
+
+#### Version 5.13.1.0
+- Verified compatibility with MoPub SDK 5.13.1.
+- Updated the minimum required Google Mobile Ads SDK version to 19.2.0.
+- Added a new extra to the `MoPubAdapter.BundleBuilder` class:
+  * `setCustomRewardData()` - custom reward data for MoPub rewarded ads.
+
+Built and tested with:
+- Google Mobile Ads SDK version 19.2.0.
+- MoPub SDK version 5.13.1.
+
+#### Version 5.13.0.0
+- Verified compatibility with MoPub SDK 5.13.0.
+
+Built and tested with:
+- Google Mobile Ads SDK version 19.1.0.
+- MoPub SDK version 5.13.0.
+
 #### Version 5.12.0.1
 - Updated the minimum required Google Mobile Ads SDK version to 19.1.0.
 - Further added descriptive error codes and reasons for adapter load failures.
@@ -9,6 +34,7 @@ Built and tested with:
 - MoPub SDK version 5.12.0.
 
 #### Version 5.12.0.0
+- Verified compatibility with MoPub SDK 5.12.0.
 - Updated the minimum required Google Mobile Ads SDK version to 19.0.1.
 - Adjusted support for flexible banner ad sizes.
 - Added new extras to the `MoPubAdapter.BundleBuilder` class:

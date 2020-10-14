@@ -1,9 +1,5 @@
 package com.applovin.mediation.rtb;
 
-import static com.google.ads.mediation.applovin.AppLovinMediationAdapter.ERROR_CONTEXT_NOT_ACTIVITY;
-import static com.google.ads.mediation.applovin.AppLovinMediationAdapter.createAdapterError;
-
-import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import com.applovin.adview.AppLovinInterstitialAd;
@@ -51,29 +47,19 @@ public final class AppLovinRtbInterstitialRenderer
 
   public AppLovinRtbInterstitialRenderer(
       MediationInterstitialAdConfiguration adConfiguration,
-      MediationAdLoadCallback<MediationInterstitialAd,
-          MediationInterstitialAdCallback> callback) {
+      MediationAdLoadCallback<MediationInterstitialAd, MediationInterstitialAdCallback> callback) {
 
     this.adConfiguration = adConfiguration;
     this.callback = callback;
 
-    this.sdk = AppLovinUtils.retrieveSdk(adConfiguration.getServerParameters(),
-        adConfiguration.getContext());
+    this.sdk =
+        AppLovinUtils.retrieveSdk(
+            adConfiguration.getServerParameters(), adConfiguration.getContext());
   }
 
   public void loadAd() {
-    Context context = adConfiguration.getContext();
-    if (!(context instanceof Activity)) {
-      String adapterError =
-          createAdapterError(
-              ERROR_CONTEXT_NOT_ACTIVITY, "AppLovin requires an Activity context to load ads.");
-      Log.e(TAG, "Failed to load interstitial ad from AppLovin: " + adapterError);
-      callback.onFailure(adapterError);
-      return;
-    }
-
     // Create interstitial object
-    interstitialAd = AppLovinInterstitialAd.create(sdk, context);
+    interstitialAd = AppLovinInterstitialAd.create(sdk, adConfiguration.getContext());
     interstitialAd.setAdDisplayListener(this);
     interstitialAd.setAdClickListener(this);
     interstitialAd.setAdVideoPlaybackListener(this);
@@ -91,7 +77,7 @@ public final class AppLovinRtbInterstitialRenderer
     interstitialAd.showAndRender(ad);
   }
 
-  //region AppLovin Listeners
+  // region AppLovin Listeners
   @Override
   public void adReceived(AppLovinAd ad) {
     Log.d(TAG, "Interstitial did load ad: " + ad.getAdIdNumber());
@@ -110,33 +96,33 @@ public final class AppLovinRtbInterstitialRenderer
 
   @Override
   public void adDisplayed(AppLovinAd ad) {
-    Log.d(TAG, "Interstitial displayed");
+    Log.d(TAG, "Interstitial displayed.");
     mInterstitalAdCallback.reportAdImpression();
     mInterstitalAdCallback.onAdOpened();
   }
 
   @Override
   public void adHidden(AppLovinAd ad) {
-    Log.d(TAG, "Interstitial hidden");
+    Log.d(TAG, "Interstitial hidden.");
     mInterstitalAdCallback.onAdClosed();
   }
 
   @Override
   public void adClicked(AppLovinAd ad) {
-    Log.d(TAG, "Interstitial clicked");
+    Log.d(TAG, "Interstitial clicked.");
     mInterstitalAdCallback.reportAdClicked();
     mInterstitalAdCallback.onAdLeftApplication();
   }
 
   @Override
   public void videoPlaybackBegan(AppLovinAd ad) {
-    Log.d(TAG, "Interstitial video playback began");
+    Log.d(TAG, "Interstitial video playback began.");
   }
 
   @Override
   public void videoPlaybackEnded(AppLovinAd ad, double percentViewed, boolean fullyWatched) {
-    Log.d(TAG, "Interstitial video playback ended at playback percent: " + percentViewed + "%");
+    Log.d(TAG, "Interstitial video playback ended at playback percent: " + percentViewed + "%.");
   }
-  //endregion
+  // endregion
 
 }

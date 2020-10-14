@@ -5,6 +5,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.applovin.sdk.AppLovinAdSize;
 import com.applovin.sdk.AppLovinErrorCodes;
 import com.applovin.sdk.AppLovinMediationProvider;
@@ -12,10 +14,11 @@ import com.applovin.sdk.AppLovinSdk;
 import com.applovin.sdk.AppLovinSdkSettings;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.MediationUtils;
 import java.util.ArrayList;
 
-/*
- * A helper class used by {@link AppLovinAdapter}.
+/**
+ * A helper class used by {@link ApplovinAdapter}.
  */
 public class AppLovinUtils {
 
@@ -35,8 +38,8 @@ public class AppLovinUtils {
    * parameters, or Android Manifest.
    */
   public static AppLovinSdk retrieveSdk(Bundle serverParameters, Context context) {
-    final String sdkKey = (serverParameters != null) ?
-        serverParameters.getString(ServerParameterKeys.SDK_KEY) : null;
+    final String sdkKey =
+        (serverParameters != null) ? serverParameters.getString(ServerParameterKeys.SDK_KEY) : null;
     final AppLovinSdk sdk;
 
     if (!TextUtils.isEmpty(sdkKey)) {
@@ -66,11 +69,12 @@ public class AppLovinUtils {
   private static Bundle retrieveMetadata(Context context) {
     try {
       final PackageManager pm = context.getPackageManager();
-      final ApplicationInfo ai = pm.getApplicationInfo(context.getPackageName(),
-          PackageManager.GET_META_DATA);
+      final ApplicationInfo ai =
+          pm.getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
 
       return ai.metaData;
     } catch (PackageManager.NameNotFoundException ignored) {
+      // Metadata not found. Just continue and return null.
     }
 
     return null;
@@ -99,9 +103,7 @@ public class AppLovinUtils {
    * Convert the given AppLovin SDK error code into the appropriate AdMob error code.
    */
   public static int toAdMobErrorCode(int applovinErrorCode) {
-    //
-    // TODO: Be more exhaustive
-    //
+    // TODO: Be more exhaustive.
     if (applovinErrorCode == AppLovinErrorCodes.NO_FILL) {
       return AdRequest.ERROR_CODE_NO_FILL;
     } else if (applovinErrorCode == AppLovinErrorCodes.FETCH_AD_TIMEOUT) {
@@ -114,79 +116,20 @@ public class AppLovinUtils {
   /**
    * Get the {@link AppLovinAdSize} from a given {@link AdSize} from AdMob.
    */
-  public static AppLovinAdSize appLovinAdSizeFromAdMobAdSize(Context context, AdSize adSize) {
+  @Nullable
+  public static AppLovinAdSize appLovinAdSizeFromAdMobAdSize(@NonNull Context context,
+      @NonNull AdSize adSize) {
+    ArrayList<AdSize> potentials = new ArrayList<>();
+    potentials.add(AdSize.BANNER);
+    potentials.add(AdSize.LEADERBOARD);
 
-    ArrayList<AdSize> potentials = new ArrayList<>(3);
-    potentials.add(0, AdSize.BANNER);
-    potentials.add(1, AdSize.LEADERBOARD);
-    potentials.add(2, AdSize.MEDIUM_RECTANGLE);
-
-    AdSize closestSize = AppLovinUtils.findClosestSize(context, adSize, potentials);
-    if (closestSize == null) {
-      return null;
-    }
-
+    AdSize closestSize = MediationUtils.findClosestSize(context, adSize, potentials);
     if (AdSize.BANNER.equals(closestSize)) {
       return AppLovinAdSize.BANNER;
-    } else if (AdSize.MEDIUM_RECTANGLE.equals(closestSize)) {
-      return AppLovinAdSize.MREC;
     } else if (AdSize.LEADERBOARD.equals(closestSize)) {
       return AppLovinAdSize.LEADER;
     }
 
     return null;
-  }
-
-  /**
-   * Find the closest supported AdSize from the list of potentials to the provided size. Returns
-   * null if none are within given threshold size range.
-   */
-  public static AdSize findClosestSize(Context context,
-      AdSize original, ArrayList<AdSize> potentials) {
-    if (potentials == null || original == null) {
-      return null;
-    }
-    float density = context.getResources().getDisplayMetrics().density;
-    int actualWidth = Math.round(original.getWidthInPixels(context) / density);
-    int actualHeight = Math.round(original.getHeightInPixels(context) / density);
-    original = new AdSize(actualWidth, actualHeight);
-    AdSize largestPotential = null;
-    for (AdSize potential : potentials) {
-      if (isSizeInRange(original, potential)) {
-        if (largestPotential == null) {
-          largestPotential = potential;
-        } else {
-          largestPotential = getLargerByArea(largestPotential, potential);
-        }
-      }
-    }
-    return largestPotential;
-  }
-
-  private static boolean isSizeInRange(AdSize original, AdSize potential) {
-    if (potential == null) {
-      return false;
-    }
-    double minWidthRatio = 0.5;
-    double minHeightRatio = 0.7;
-
-    int originalWidth = original.getWidth();
-    int potentialWidth = potential.getWidth();
-    int originalHeight = original.getHeight();
-    int potentialHeight = potential.getHeight();
-
-    if (originalWidth * minWidthRatio > potentialWidth ||
-        originalWidth < potentialWidth) {
-      return false;
-    }
-
-    return !(originalHeight * minHeightRatio > potentialHeight) &&
-        originalHeight >= potentialHeight;
-  }
-
-  private static AdSize getLargerByArea(AdSize size1, AdSize size2) {
-    int area1 = size1.getWidth() * size1.getHeight();
-    int area2 = size2.getWidth() * size2.getHeight();
-    return area1 > area2 ? size1 : size2;
   }
 }

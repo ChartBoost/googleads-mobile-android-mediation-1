@@ -2,7 +2,7 @@ package com.applovin.mediation;
 
 import android.os.Bundle;
 
-/*
+/**
  * The {@link AppLovinExtras} class creates a mediation extras {@link Bundle} for the AppLovin
  * adapter.
  */
